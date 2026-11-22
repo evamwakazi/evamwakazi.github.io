@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Pre-Trained Model Decision Matrix — Eva Mwakazi, Ph.D.</title>
+<style>
+  :root{
+    --bg:#fdfbf7; --surface:#ffffff; --surface2:#f7f1e6; --ink:#2b2118; --muted:#6f5f4d;
+    --line:#e7dcc8; --brown:#7c4a1e; --brown-dark:#4a2c12; --gold:#b8860b; --gold-bg:#fdf3d7;
+    --green:#2e7d4f; --green-bg:#e6f4ec; --amber:#9a6b12; --amber-bg:#fef3c7; --red:#9b3a2e; --red-bg:#fdecea;
+    --blue:#2f5d7a; --blue-bg:#e8f0f5; --radius:14px;
+    --shadow:0 1px 3px rgba(74,44,18,.08),0 8px 24px rgba(74,44,18,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#171310; --surface:#221c17; --surface2:#2a231c; --ink:#f3ede3; --muted:#c9b8a3;
+      --line:#3d332a; --brown:#e0a458; --brown-dark:#f3d9ae; --gold:#e5b83b; --gold-bg:#3a2f14;
+      --green:#6fcf97; --green-bg:#173325; --amber:#f2c94c; --amber-bg:#3a2f14; --red:#eb9a8f; --red-bg:#3d211c;
+      --blue:#8fc1de; --blue-bg:#1d2f3a; --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none!important} }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6;font-size:16px}
+  button,[role="button"],select,summary{ min-height:2.25rem; }
+  a{color:var(--brown);text-decoration-color:color-mix(in srgb,var(--brown) 40%, transparent);text-underline-offset:3px}
+  a:hover{text-decoration-color:var(--brown)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 64px}
+
+  /* Header band */
+  .band{background:var(--brown-dark);color:#fdf6e9;margin:0 0 0;padding:36px 20px 30px}
+  @media (prefers-color-scheme: dark){ .band{background:#0f0c0a;border-bottom:3px solid var(--gold)} }
+  .band-in{max-width:1080px;margin:0 auto}
+  .course{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#e8c87a;font-weight:700;margin:0 0 10px}
+  h1{font-family:"Iowan Old Style",Palatino,Palatino Linotype,Georgia,serif;font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.08;margin:0 0 12px;font-weight:700;letter-spacing:-.01em}
+  .band p.lede{font-size:1.06rem;line-height:1.55;color:#f0e3c8;max-width:46rem;margin:0 0 16px}
+  .byline{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;color:#d9c9a8;border-top:1px solid rgba(232,200,122,.25);padding-top:14px}
+  .byline strong{color:#fff}
+
+  h2{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:1.55rem;line-height:1.2;margin:42px 0 6px;letter-spacing:-.01em}
+  h2 + .sub{color:var(--muted);margin:0 0 18px;max-width:44rem}
+  h3{font-size:1.05rem;margin:0 0 6px;line-height:1.3}
+  p{margin:0 0 12px}
+  .small{font-size:.86rem;color:var(--muted)}
+
+  .callout{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin:22px 0}
+  .callout p:last-child{margin-bottom:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:700px){.grid2{grid-template-columns:1fr}}
+  .mini{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .mini p{font-size:.94rem;color:var(--muted);margin:0}
+  .mini h3{color:var(--brown-dark)}
+  @media (prefers-color-scheme: dark){ .mini h3{color:var(--gold)} }
+
+  /* Controls */
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 14px}
+  .chip{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:9px 16px;font-size:.9rem;font-weight:600;cursor:pointer;min-height:40px}
+  .chip[aria-pressed="true"]{background:var(--brown-dark);color:#fdf6e9;border-color:var(--brown-dark)}
+  @media (prefers-color-scheme: dark){ .chip[aria-pressed="true"]{background:var(--gold);color:#1c1710;border-color:var(--gold)} }
+  .chip:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* Matrix table -> cards on mobile */
+  .matrix-wrap{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  thead th{background:var(--surface2);text-align:left;font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:bottom}
+  tbody td{padding:14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{transition:background .15s}
+  tbody tr.hl{background:var(--gold-bg)}
+  .mname{font-weight:700;font-size:1rem;line-height:1.25}
+  .msub{font-size:.82rem;color:var(--muted)}
+  .tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .tag-nlp{background:var(--blue-bg);color:var(--blue)}
+  .tag-vis{background:var(--green-bg);color:var(--green)}
+  .tag-tab{background:var(--gold-bg);color:var(--amber)}
+  .dots{display:inline-flex;gap:3px;vertical-align:middle;margin-left:2px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);display:inline-block}
+  .dot.on{background:var(--gold)}
+  .dot.on.g{background:var(--green)}
+  .score-line{font-size:.8rem;color:var(--muted);white-space:nowrap}
+  .pill{display:inline-block;font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:999px}
+  .pill-hi{background:var(--green-bg);color:var(--green)}
+  .pill-mid{background:var(--amber-bg);color:var(--amber)}
+  .pill-lo{background:var(--red-bg);color:var(--red)}
+  @media(max-width:820px){
+    .matrix-wrap{border:none;background:transparent;box-shadow:none;overflow:visible}
+    table,thead,tbody,tr,td{display:block;width:100%}
+    thead{display:none}
+    tbody tr{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;padding:6px 2px;box-shadow:var(--shadow)}
+    tbody td{border-bottom:1px dashed var(--line);padding:10px 14px}
+    tbody td:last-child{border-bottom:none}
+    tbody td::before{content:attr(data-label);display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px}
+    td.model-cell::before{display:none}
+  }
+
+  /* Scenario picker */
+  .scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  @media(max-width:820px){.scenarios{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.scenarios{grid-template-columns:1fr}}
+  .scen{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:14px 16px;cursor:pointer;font:inherit;color:var(--ink)}
+  .scen strong{display:block;font-size:.98rem;margin-bottom:3px}
+  .scen span{font-size:.85rem;color:var(--muted);line-height:1.4;display:block}
+  .scen[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset;background:var(--gold-bg)}
+  .verdict{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+  .verdict h3{font-size:1.15rem;margin-bottom:4px}
+  .verdict p{margin:0 0 8px}
+  .verdict p:last-child{margin:0}
+
+  /* Model cards */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:700px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .card p{font-size:.93rem;color:var(--muted)}
+  .card p strong{color:var(--ink)}
+  .kv{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0;background:var(--surface2);border-radius:10px;padding:10px 12px}
+  .kv div span{display:block;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .kv div b{font-size:.9rem}
+
+  /* Chart */
+  .chart-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin-top:10px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;vertical-align:-1px;margin-right:5px}
+
+  .rec{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.rec{grid-template-columns:1fr}}
+  .rec .mini{border-top:4px solid var(--gold)}
+  ul.tight{margin:6px 0 0;padding-left:18px}
+  ul.tight li{margin-bottom:5px;font-size:.93rem}
+  footer{margin-top:48px;border-top:1px solid var(--line);padding-top:20px}
+  .src{font-size:.86rem;color:var(--muted)}
+  .src li{margin-bottom:6px}
+  .label-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:10px 0}
+  .label-table td,.label-table th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .label-table th{background:var(--surface2)}
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="band-in">
+    <p class="course">AIML-501 · Model Development — Portfolio Artifact</p>
+    <h1>Pre-Trained Model Decision Matrix</h1>
+    <p class="lede">Seven widely used models across language, vision, and tabular data, compared on the three things that actually decide a deployment: how big the model is, how accurate it is, and how fast it answers — plus how well anyone can explain what it did.</p>
+    <div class="byline">
+      <span><strong>Eva Mwakazi, Ph.D.</strong> · Semiconductor Process Engineer</span>
+      <span>M.S. AI &amp; Data Analytics, Indiana Wesleyan University (expected Aug 2027)</span>
+      <span><a href="https://evamwakazi.github.io/" style="color:#e8c87a">evamwakazi.github.io</a></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- INTRODUCTION -->
+  <h2>Why model selection is a trade-off, not a leaderboard</h2>
+  <p>There is no “best” pre-trained model. There is only the best fit for a task, a device, a latency budget, and an audience that has to trust the output. A model that wins a benchmark can still be the wrong choice if it is too large to run where the work happens, too slow for the person waiting on it, or too opaque for a regulated decision.</p>
+  <p>Explainability is where the trade-off becomes concrete. In general, the largest models are the least inspectable: a frontier language model’s answer cannot be traced to a single feature, while a gradient-boosted tree can report exactly which variables pushed a prediction up or down. That does not make the smaller model “better.” It means accuracy, size, speed, and explainability have to be weighed together, for each domain, before anything is deployed. This matrix is a tool for doing that weighing deliberately instead of by habit.</p>
+
+  <div class="callout">
+    <h3>The rule this matrix follows</h3>
+    <p>Start from the constraint, not the model. If the decision must be explained to an auditor, a clinician, or a customer, explainability is the first filter. If the model must run on a phone or a fab-floor camera, size and latency are the first filter. Only then compare accuracy among the models that survive.</p>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <h2>Methodology</h2>
+  <p class="sub">How the seven models were chosen, and where every number comes from.</p>
+  <div class="grid2">
+    <div class="mini">
+      <h3>Selection</h3>
+      <p>Two models per domain where the contrast is instructive, plus two deliberate extras. NLP / Generative AI: BERT-base, its distilled variant DistilBERT (included to make the size–accuracy trade measurable), and a GPT-4-class model as the frontier reference point. Vision: MobileNetV3 and EfficientNet-B0. Tabular: XGBoost and LightGBM. Each is a model a practitioner is genuinely likely to shortlist today, not a historical curiosity.</p>
+    </div>
+    <div class="mini">
+      <h3>Sources</h3>
+      <p>Parameter counts and benchmark scores are taken from the original model papers and official model cards (Devlin et al. 2019; Howard et al. 2019; Tan &amp; Le 2019; Chen &amp; Guestrin 2016; Ke et al. 2017; OpenAI GPT-4 Technical Report 2023). Speed is reported as a relative class, because raw latency depends on hardware, batch size, and precision — see the evidence labels below.</p>
+    </div>
+  </div>
+
+  <table class="label-table" aria-label="Evidence labels used in this artifact">
+    <tr><th style="width:170px">Label</th><th>Meaning</th></tr>
+    <tr><td><span class="pill pill-hi">Verified</span></td><td>Published in the model’s peer-reviewed paper or official technical report.</td></tr>
+    <tr><td><span class="pill pill-mid">Vendor-reported</span></td><td>Published by the model provider; not independently reproduced here.</td></tr>
+    <tr><td><span class="pill pill-lo">Illustrative</span></td><td>A relative rating (1–5) assigned for comparison in this matrix. It summarises published characteristics; it is not a measured benchmark.</td></tr>
+  </table>
+
+  <!-- DECISION MATRIX -->
+  <h2 id="matrix">The decision matrix</h2>
+  <p class="sub">Filter by domain, or use the scenario picker below — the matching row is highlighted in the matrix. Accuracy figures are each model’s headline result on its own domain benchmark; they are <strong>not</strong> comparable across domains.</p>
+
+  <div class="controls" role="group" aria-label="Filter matrix by domain">
+    <button class="chip" data-filter="all" aria-pressed="true">All domains (7)</button>
+    <button class="chip" data-filter="nlp" aria-pressed="false">NLP / Generative AI</button>
+    <button class="chip" data-filter="vision" aria-pressed="false">Computer Vision</button>
+    <button class="chip" data-filter="tabular" aria-pressed="false">Tabular Data</button>
+  </div>
+
+  <div class="matrix-wrap">
+    <table aria-label="Pre-trained model decision matrix">
+      <thead>
+        <tr>
+          <th style="width:19%">Model</th>
+          <th style="width:13%">Size</th>
+          <th style="width:19%">Accuracy — headline benchmark</th>
+          <th style="width:13%">Speed</th>
+          <th style="width:14%">Explainability</th>
+          <th style="width:22%">Best fit</th>
+        </tr>
+      </thead>
+      <tbody id="matrixBody">
+        <tr data-domain="nlp" data-model="gpt4">
+          <td class="model-cell" data-label="Model"><span class="mname">GPT-4-class LLM</span><br><span class="tag tag-nlp">NLP / GEN AI</span><br><span class="msub">e.g. GPT-4 / GPT-4o, API-hosted</span></td>
+          <td data-label="Size">Undisclosed<br><span class="score-line">Largest class · API only</span><br><span class="dots" aria-label="Size burden 5 of 5"><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i></span></td>
+          <td data-label="Accuracy">MMLU 86.4% (GPT-4) <span class="pill pill-hi">Verified</span><br><span class="msub">Strongest general reasoning &amp; generation in this set</span></td>
+          <td data-label="Speed"><span class="pill pill-mid">Moderate</span><br><span class="msub">Network + generation latency; streams tokens</span></td>
+          <td data-label="Explainability"><span class="pill pill-lo">Low</span><br><span class="msub">No faithful trace of reasoning; explanations are generated text, not evidence</span></td>
+          <td data-label="Best fit">Drafting, summarisation, coding help, open-ended Q&amp;A where a human reviews the output</td>
+        </tr>
+        <tr data-domain="nlp" data-model="bert">
+          <td class="model-cell" data-label="Model"><span class="mname">BERT-base</span><br><span class="tag tag-nlp">NLP / GEN AI</span><br><span class="msub">Google, 2018 · encoder</span></td>
+          <td data-label="Size">110M params · ~440 MB<br><span class="score-line">Runs on CPU / small GPU</span><br><span class="dots" aria-label="Size burden 2 of 5"><i class="dot on"></i><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></td>
+          <td data-label="Accuracy">GLUE 79.6 · SQuAD v1.1 F1 88.5 <span class="pill pill-hi">Verified</span><br><span class="msub">Fine-tuned per task</span></td>
+          <td data-label="Speed"><span class="pill pill-hi">Fast</span><br><span class="msub">Single forward pass; milliseconds on GPU</span></td>
+          <td data-label="Explainability"><span class="pill pill-mid">Moderate</span><br><span class="msub">Attention &amp; probing help, but attention is not a faithful explanation by itself</span></td>
+          <td data-label="Best fit">Classification, sentiment, entity extraction, search ranking — high-volume, well-defined language tasks</td>
+        </tr>
+        <tr data-domain="vision" data-model="efficientnet">
+          <td class="model-cell" data-label="Model"><span class="mname">EfficientNet-B0</span><br><span class="tag tag-vis">VISION</span><br><span class="msub">Google, 2019 · scales B0–B7</span></td>
+          <td data-label="Size">5.3M params · ~21 MB<br><span class="score-line">Small; B7 grows to 66M</span><br><span class="dots" aria-label="Size burden 1 of 5"><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></td>
+          <td data-label="Accuracy">ImageNet top-1 77.1% <span class="pill pill-hi">Verified</span><br><span class="msub">B7 reaches 84.3% at much higher cost</span></td>
+          <td data-label="Speed"><span class="pill pill-hi">Fast</span><br><span class="msub">Designed for accuracy per FLOP</span></td>
+          <td data-label="Explainability"><span class="pill pill-mid">Moderate</span><br><span class="msub">Saliency / Grad-CAM show where it looked, not why</span></td>
+          <td data-label="Best fit">Image classification and transfer learning where accuracy per compute matters, server or edge GPU</td>
+        </tr>
+        <tr data-domain="vision" data-model="mobilenet">
+          <td class="model-cell" data-label="Model"><span class="mname">MobileNetV3 Large</span><br><span class="tag tag-vis">VISION</span><br><span class="msub">Google, 2019 · mobile-first</span></td>
+          <td data-label="Size">5.4M params · ~22 MB<br><span class="score-line">Built for phones</span><br><span class="dots" aria-label="Size burden 1 of 5"><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></td>
+          <td data-label="Accuracy">ImageNet top-1 75.2% <span class="pill pill-hi">Verified</span><br><span class="msub">~1.9 pts below EfficientNet-B0</span></td>
+          <td data-label="Speed"><span class="pill pill-hi">Fastest (vision)</span><br><span class="msub">Optimised for mobile CPU latency</span></td>
+          <td data-label="Explainability"><span class="pill pill-mid">Moderate</span><br><span class="msub">Same saliency limits as other CNNs</span></td>
+          <td data-label="Best fit">On-device and real-time vision: scanning, inspection cameras, offline apps</td>
+        </tr>
+        <tr data-domain="tabular" data-model="xgboost">
+          <td class="model-cell" data-label="Model"><span class="mname">XGBoost</span><br><span class="tag tag-tab">TABULAR</span><br><span class="msub">Gradient-boosted trees, 2016</span></td>
+          <td data-label="Size">No fixed params — set by trees × depth<br><span class="score-line">Typically KB–low MB</span><br><span class="dots" aria-label="Size burden 1 of 5"><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></td>
+          <td data-label="Accuracy">No single benchmark <span class="pill pill-mid">Vendor-reported</span><br><span class="msub">Consistently top-tier on structured-data competitions &amp; benchmarks</span></td>
+          <td data-label="Speed"><span class="pill pill-hi">Very fast</span><br><span class="msub">Microsecond–millisecond scoring per row on CPU</span></td>
+          <td data-label="Explainability"><span class="pill pill-hi">High</span><br><span class="msub">Feature importance + SHAP values per prediction</span></td>
+          <td data-label="Best fit">Risk, churn, yield and defect prediction on structured data; regulated scoring</td>
+        </tr>
+        <tr data-domain="tabular" data-model="lightgbm">
+          <td class="model-cell" data-label="Model"><span class="mname">LightGBM</span><br><span class="tag tag-tab">TABULAR</span><br><span class="msub">Microsoft, 2017 · leaf-wise trees</span></td>
+          <td data-label="Size">No fixed params — set by trees × leaves<br><span class="score-line">Typically KB–low MB</span><br><span class="dots" aria-label="Size burden 1 of 5"><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></td>
+          <td data-label="Accuracy">No single benchmark <span class="pill pill-mid">Vendor-reported</span><br><span class="msub">Comparable to XGBoost; often faster to train on large data</span></td>
+          <td data-label="Speed"><span class="pill pill-hi">Very fast</span><br><span class="msub">Fastest training of the tabular pair on large datasets</span></td>
+          <td data-label="Explainability"><span class="pill pill-hi">High</span><br><span class="msub">Feature importance + SHAP values per prediction</span></td>
+          <td data-label="Best fit">Large tabular datasets, ranking, and rapid retraining cycles</td>
+        </tr>
+        <tr data-domain="nlp" data-model="distilbert">
+          <td class="model-cell" data-label="Model"><span class="mname">DistilBERT</span><br><span class="tag tag-nlp">NLP / GEN AI</span><br><span class="msub">Hugging Face, 2019 · distilled</span></td>
+          <td data-label="Size">66M params · ~260 MB<br><span class="score-line">40% smaller than BERT</span><br><span class="dots" aria-label="Size burden 1 of 5"><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></td>
+          <td data-label="Accuracy">~97% of BERT’s GLUE score <span class="pill pill-hi">Verified</span><br><span class="msub">Vendor paper: retains most performance</span></td>
+          <td data-label="Speed"><span class="pill pill-hi">Fastest (NLP)</span><br><span class="msub">~60% faster than BERT-base</span></td>
+          <td data-label="Explainability"><span class="pill pill-mid">Moderate</span><br><span class="msub">Same probing limits as BERT</span></td>
+          <td data-label="Best fit">Production NLP on a budget: support triage, tagging, on-device text classification</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small" style="margin-top:10px">Dots = relative size burden within this set (more dots = larger / heavier to run). Speed pills are relative classes, not measured latencies — actual latency depends on hardware, batch size, and numeric precision. <span class="pill pill-lo">Illustrative</span></p>
+
+  <!-- SCENARIO PICKER -->
+  <h2>Start from your scenario</h2>
+  <p class="sub">Pick the situation closest to yours. The recommendation updates, and the matrix row lights up.</p>
+  <div class="scenarios" role="group" aria-label="Choose a scenario">
+    <button class="scen" data-scen="draft" aria-pressed="false"><strong>Draft &amp; summarise text</strong><span>Reports, emails, fab-log summaries — a person reviews everything.</span></button>
+    <button class="scen" data-scen="triage" aria-pressed="false"><strong>High-volume text triage</strong><span>Thousands of tickets or documents to tag every day, cheaply.</span></button>
+    <button class="scen" data-scen="camera" aria-pressed="false"><strong>Camera on the line / on a phone</strong><span>Real-time image checks with no cloud round-trip.</span></button>
+    <button class="scen" data-scen="accuracy" aria-pressed="false"><strong>Best image accuracy per compute</strong><span>Server-side classification where every point of accuracy counts.</span></button>
+    <button class="scen" data-scen="audit" aria-pressed="false"><strong>A score you must defend</strong><span>Yield, risk, or eligibility — an auditor will ask “why this result?”</span></button>
+    <button class="scen" data-scen="bigtab" aria-pressed="false"><strong>Very large structured dataset</strong><span>Millions of rows, retrained often, still needs feature-level reasons.</span></button>
+  </div>
+  <div class="verdict" id="verdict" aria-live="polite">
+    <h3>No scenario selected yet</h3>
+    <p>Choose one above and this panel will name a first-choice model, the runner-up, and what you give up with each.</p>
+  </div>
+
+  <!-- CHART -->
+  <h2>The trade-off at a glance</h2>
+  <p class="sub">Relative ratings (1–5) assigned for this matrix from the published characteristics above. They compare models <em>as deployment choices</em>, not on a shared benchmark — a vision model and a language model never take the same test. <span class="pill pill-lo">Illustrative</span></p>
+  <div class="chart-box">
+    <svg viewBox="0 0 720 300" role="img" aria-label="Grouped bar chart comparing seven models on accuracy, speed, size efficiency, and explainability, each scored 1 to 5">
+      <!-- gridlines -->
+      <g stroke="var(--line)" stroke-width="1">
+        <line x1="150" y1="20" x2="150" y2="260"/><line x1="262" y1="20" x2="262" y2="260"/><line x1="374" y1="20" x2="374" y2="260"/><line x1="486" y1="20" x2="486" y2="260"/><line x1="598" y1="20" x2="598" y2="260"/><line x1="710" y1="20" x2="710" y2="260"/>
+      </g>
+      <g font-size="11" fill="var(--muted)" text-anchor="middle">
+        <text x="150" y="278">0</text><text x="262" y="278">1</text><text x="374" y="278">2</text><text x="486" y="278">3</text><text x="598" y="278">4</text><text x="710" y="278">5</text>
+      </g>
+      <!-- rows: y starts, each model 4 bars of h=5 gap 2, group h=34 -->
+      <g font-size="12.5" fill="var(--ink)" font-weight="600" text-anchor="end">
+        <text x="140" y="42">GPT-4-class</text><text x="140" y="76">BERT-base</text><text x="140" y="110">DistilBERT</text><text x="140" y="144">EfficientNet-B0</text><text x="140" y="178">MobileNetV3</text><text x="140" y="212">XGBoost</text><text x="140" y="246">LightGBM</text>
+      </g>
+      <g>
+        <!-- GPT-4: acc5 spd2 eff1 exp1 -->
+        <rect x="150" y="24" width="560" height="5" fill="#b8860b"/><rect x="150" y="31" width="224" height="5" fill="#2f5d7a"/><rect x="150" y="38" width="112" height="5" fill="#2e7d4f"/><rect x="150" y="45" width="112" height="5" fill="#9b3a2e"/>
+        <!-- BERT: acc4 spd4 eff3 exp3 -->
+        <rect x="150" y="58" width="448" height="5" fill="#b8860b"/><rect x="150" y="65" width="448" height="5" fill="#2f5d7a"/><rect x="150" y="72" width="336" height="5" fill="#2e7d4f"/><rect x="150" y="79" width="336" height="5" fill="#9b3a2e"/>
+        <!-- DistilBERT: acc3.5->392 spd5 eff4 exp3 -->
+        <rect x="150" y="92" width="392" height="5" fill="#b8860b"/><rect x="150" y="99" width="560" height="5" fill="#2f5d7a"/><rect x="150" y="106" width="448" height="5" fill="#2e7d4f"/><rect x="150" y="113" width="336" height="5" fill="#9b3a2e"/>
+        <!-- EffNet: acc4 spd4 eff5 exp3 -->
+        <rect x="150" y="126" width="448" height="5" fill="#b8860b"/><rect x="150" y="133" width="448" height="5" fill="#2f5d7a"/><rect x="150" y="140" width="560" height="5" fill="#2e7d4f"/><rect x="150" y="147" width="336" height="5" fill="#9b3a2e"/>
+        <!-- MobileNet: acc3.5 spd5 eff5 exp3 -->
+        <rect x="150" y="160" width="392" height="5" fill="#b8860b"/><rect x="150" y="167" width="560" height="5" fill="#2f5d7a"/><rect x="150" y="174" width="560" height="5" fill="#2e7d4f"/><rect x="150" y="181" width="336" height="5" fill="#9b3a2e"/>
+        <!-- XGB: acc4.5->504 spd5 eff5 exp5 -->
+        <rect x="150" y="194" width="504" height="5" fill="#b8860b"/><rect x="150" y="201" width="560" height="5" fill="#2f5d7a"/><rect x="150" y="208" width="560" height="5" fill="#2e7d4f"/><rect x="150" y="215" width="560" height="5" fill="#9b3a2e"/>
+        <!-- LGBM: acc4.5 spd5 eff5 exp5 -->
+        <rect x="150" y="228" width="504" height="5" fill="#b8860b"/><rect x="150" y="235" width="560" height="5" fill="#2f5d7a"/><rect x="150" y="242" width="560" height="5" fill="#2e7d4f"/><rect x="150" y="249" width="560" height="5" fill="#9b3a2e"/>
+      </g>
+    </svg>
+    <div class="legend">
+      <span><i style="background:#b8860b"></i>Accuracy (within domain)</span>
+      <span><i style="background:#2f5d7a"></i>Speed</span>
+      <span><i style="background:#2e7d4f"></i>Size efficiency (smaller = higher)</span>
+      <span><i style="background:#9b3a2e"></i>Explainability</span>
+    </div>
+    <p class="small" style="margin:10px 0 0">Reading it: no row is longest on all four bars. The tabular models come closest — which is exactly why structured-data problems should not default to a neural network. The GPT-4-class row shows the opposite pattern: maximum capability, minimum inspectability and efficiency.</p>
+  </div>
+
+  <!-- MODEL CARDS -->
+  <h2>Model notes</h2>
+  <p class="sub">Strengths, limits, and the explainability caveat that matters for each model.</p>
+  <div class="cards">
+    <article class="card">
+      <div class="card-head"><h3>GPT-4-class LLM</h3><span class="tag tag-nlp">NLP / GEN AI</span></div>
+      <div class="kv"><div><span>Size</span><b>Undisclosed</b></div><div><span>Accuracy</span><b>MMLU 86.4%</b></div><div><span>Access</span><b>API only</b></div></div>
+      <p><strong>Strength:</strong> one model covers drafting, reasoning, code, and translation with no task-specific training. <strong>Limit:</strong> cost, latency, and data leaving your systems on every call. <strong>Explainability caveat:</strong> a fluent rationale is not a faithful one — the model can produce a convincing explanation that does not reflect how the answer was produced, so high-stakes outputs still need human verification and source checking.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><h3>BERT-base</h3><span class="tag tag-nlp">NLP / GEN AI</span></div>
+      <div class="kv"><div><span>Size</span><b>110M params</b></div><div><span>Accuracy</span><b>GLUE 79.6</b></div><div><span>Speed</span><b>Fast</b></div></div>
+      <p><strong>Strength:</strong> predictable, self-hostable, and excellent once fine-tuned on a defined task. <strong>Limit:</strong> understands text but does not generate it; each new task needs labelled data and fine-tuning. <strong>Explainability caveat:</strong> attention maps look like explanations but research (Jain &amp; Wallace, 2019) shows they can disagree with the features that actually drove the prediction — use probing and ablation alongside them.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><h3>DistilBERT</h3><span class="tag tag-nlp">NLP / GEN AI</span></div>
+      <div class="kv"><div><span>Size</span><b>66M params</b></div><div><span>Accuracy</span><b>~97% of BERT</b></div><div><span>Speed</span><b>~60% faster</b></div></div>
+      <p><strong>Strength:</strong> the clearest worked example of the size–accuracy trade in this matrix: 40% fewer parameters and roughly 60% faster inference in exchange for a small, measured accuracy loss. <strong>Limit:</strong> inherits BERT’s task-by-task fine-tuning cost. <strong>Lesson:</strong> distillation, quantisation, and pruning should be evaluated before accepting a larger model’s footprint.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><h3>EfficientNet-B0</h3><span class="tag tag-vis">VISION</span></div>
+      <div class="kv"><div><span>Size</span><b>5.3M params</b></div><div><span>Accuracy</span><b>77.1% top-1</b></div><div><span>Family</span><b>B0–B7</b></div></div>
+      <p><strong>Strength:</strong> compound scaling gives a dial, not a guess — move from B0 to B7 as the accuracy budget grows, accepting 66M parameters and far more compute at B7 for 84.3% top-1. <strong>Limit:</strong> the higher variants lose the efficiency that makes the family attractive. <strong>Explainability caveat:</strong> Grad-CAM highlights the region used; it does not establish that the region was used for the right reason.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><h3>MobileNetV3 Large</h3><span class="tag tag-vis">VISION</span></div>
+      <div class="kv"><div><span>Size</span><b>5.4M params</b></div><div><span>Accuracy</span><b>75.2% top-1</b></div><div><span>Speed</span><b>Mobile CPU</b></div></div>
+      <p><strong>Strength:</strong> designed backwards from a latency target on phone hardware, so its speed claim is the point of the architecture, not an afterthought. <strong>Limit:</strong> gives up about two points of ImageNet accuracy to EfficientNet-B0 for that latency. <strong>Best use:</strong> anywhere the camera and the decision live on the same device.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><h3>XGBoost &amp; LightGBM</h3><span class="tag tag-tab">TABULAR</span></div>
+      <div class="kv"><div><span>Size</span><b>KB – low MB</b></div><div><span>Accuracy</span><b>Top-tier tabular</b></div><div><span>Speed</span><b>Very fast</b></div></div>
+      <p><strong>Strength:</strong> on rows-and-columns data they routinely match or beat deep learning at a fraction of the size, training cost, and energy — and every prediction can be decomposed into per-feature SHAP contributions. <strong>Difference:</strong> LightGBM’s leaf-wise growth usually trains faster on large data; XGBoost’s level-wise growth can be more conservative on small, noisy sets. <strong>Limit:</strong> neither reads raw text or images; features must be engineered first.</p>
+    </article>
+  </div>
+
+  <!-- ANALYSIS -->
+  <h2>Analysis &amp; recommendations by domain</h2>
+  <div class="rec">
+    <div class="mini">
+      <h3>NLP / Generative AI</h3>
+      <ul class="tight">
+        <li><strong>Generate or reason openly?</strong> GPT-4-class — with human review, because its explanations cannot be trusted as evidence.</li>
+        <li><strong>Classify at volume?</strong> DistilBERT first; step up to BERT-base only if an evaluation on your own data shows the extra accuracy is real.</li>
+        <li><strong>Never</strong> pay frontier-model cost and latency for a fixed label set a 66M model handles.</li>
+      </ul>
+    </div>
+    <div class="mini">
+      <h3>Computer Vision</h3>
+      <ul class="tight">
+        <li><strong>On-device or real-time?</strong> MobileNetV3 — latency was its design target.</li>
+        <li><strong>Server-side, accuracy-sensitive?</strong> EfficientNet, scaled B0 upward only as far as measured gains justify.</li>
+        <li>For wafer and surface inspection, fine-tune either backbone on fab images; ImageNet scores rank the backbones, they do not predict defect-detection performance.</li>
+      </ul>
+    </div>
+    <div class="mini">
+      <h3>Tabular Data</h3>
+      <ul class="tight">
+        <li><strong>Default:</strong> LightGBM for large or frequently retrained data, XGBoost for smaller sets — both with SHAP reporting built into the deliverable.</li>
+        <li><strong>Choose these first</strong> whenever the decision must be explained feature by feature: yield prediction, risk scoring, process optimisation.</li>
+        <li>Reach for a neural model on tabular data only with evidence it beats the boosted-tree baseline.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>The same matrix, applied to a fab</h3>
+    <p>Semiconductor work contains all three domains at once. Wafer inspection is a vision problem where a MobileNet- or EfficientNet-class backbone fits the camera’s compute budget. Yield and defect prediction from process parameters is a tabular problem where LightGBM or XGBoost wins on speed <em>and</em> gives engineers the per-variable explanation they need to act. Summarising shift logs and maintenance notes is a language problem where a GPT-4-class model drafts and a process engineer verifies. Picking one “AI strategy” for all three would get at least two of them wrong.</p>
+  </div>
+
+  <!-- CONCLUSION -->
+  <h2>Conclusion</h2>
+  <p>Across seven models and three domains, the pattern is consistent: accuracy is bought with size, size is paid for in speed, energy, and opacity — and the exchange rate differs by domain. Tabular models break the pattern most favourably, delivering top-tier accuracy in kilobytes with feature-level explanations. Distilled and mobile-first models show the trade can be renegotiated with architecture. Frontier language models sit at the extreme: unmatched capability, undisclosed size, and explanations that must be verified rather than believed.</p>
+  <p>The practical implication is a selection discipline: name the binding constraint first (explainability, latency, device, or capability), filter on it, then optimise accuracy among what remains — and record the evidence label on every number used to decide. That discipline, more than any single model choice, is what makes a deployment defensible.</p>
+
+  <footer>
+    <h3 style="margin-bottom:8px">Sources</h3>
+    <ul class="src">
+      <li>Devlin, J. et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. NAACL-HLT.</li>
+      <li>Sanh, V. et al. (2019). DistilBERT, a distilled version of BERT. arXiv:1910.01108.</li>
+      <li>OpenAI (2023). GPT-4 Technical Report. MMLU 86.4% as reported; parameter count not disclosed.</li>
+      <li>Tan, M. &amp; Le, Q. (2019). EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks. ICML.</li>
+      <li>Howard, A. et al. (2019). Searching for MobileNetV3. ICCV.</li>
+      <li>Chen, T. &amp; Guestrin, C. (2016). XGBoost: A Scalable Tree Boosting System. KDD.</li>
+      <li>Ke, G. et al. (2017). LightGBM: A Highly Efficient Gradient Boosting Decision Tree. NeurIPS.</li>
+      <li>Jain, S. &amp; Wallace, B. (2019). Attention is not Explanation. NAACL-HLT — cited for the limits of attention as an explanation.</li>
+      <li>Portfolio: <a href="https://evamwakazi.github.io/">evamwakazi.github.io</a> · GitHub: <a href="https://github.com/evamwakazi">github.com/evamwakazi</a></li>
+    </ul>
+    <p class="small"><strong>AI Use Disclosure:</strong> Meta AI (Muse) was used to help organise this research into a presentable format and to build the interactive page. Model characteristics were checked against the published papers and technical reports listed above. Ratings labelled “Illustrative” are the author’s comparative judgements, not measured benchmarks.</p>
+    <p class="small">Eva Mwakazi, Ph.D. · AIML-501: Model Development, Indiana Wesleyan University.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  // Domain filter
+  var chips = document.querySelectorAll('[data-filter]');
+  var rows = document.querySelectorAll('#matrixBody tr');
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){ c.setAttribute('aria-pressed','false'); });
+      chip.setAttribute('aria-pressed','true');
+      var f = chip.getAttribute('data-filter');
+      rows.forEach(function(r){
+        r.style.display = (f==='all' || r.getAttribute('data-domain')===f) ? '' : 'none';
+      });
+    });
+  });
+
+  // Scenario picker
+  var verdicts = {
+    draft:   { model:'gpt4', title:'First choice: GPT-4-class LLM', body:'Open-ended drafting and summarisation is the one job in this set that only a large generative model does well. Runner-up: none of the smaller models generate text. What you give up: explainability and data control — keep a human reviewer on every output and treat the model\u2019s own rationale as a draft, not evidence.' },
+    triage:  { model:'distilbert', title:'First choice: DistilBERT', body:'Fixed labels at high volume is a classification job, and DistilBERT keeps about 97% of BERT\u2019s benchmark performance at roughly 60% faster inference and 40% fewer parameters. Runner-up: BERT-base, if an evaluation on your own labelled data proves the extra accuracy. What you give up with a GPT-4-class model here: cost, latency, and self-hosting — for no needed capability.' },
+    camera:  { model:'mobilenet', title:'First choice: MobileNetV3 Large', body:'It was designed backwards from a mobile-CPU latency target, so real-time on-device inference is its home ground. Runner-up: EfficientNet-B0 if the device has a small GPU and you need its extra ~2 points of ImageNet accuracy. What you give up: a little accuracy, in exchange for no cloud round-trip and offline operation.' },
+    accuracy:{ model:'efficientnet', title:'First choice: EfficientNet (scaled)', body:'Start at B0 (77.1% top-1, 5.3M parameters) and scale upward only while your own validation set shows real gains — B7 reaches 84.3% but at 66M parameters. Runner-up: MobileNetV3 when latency tightens. What you give up as you scale: the efficiency that justified the family in the first place.' },
+    audit:   { model:'xgboost', title:'First choice: XGBoost', body:'When someone will ask \u201cwhy this score?\u201d, a boosted tree answers precisely: SHAP values decompose every prediction into per-feature contributions, in a model measured in kilobytes that scores in milliseconds. Runner-up: LightGBM, equivalent on explainability. What you give up: nothing relevant — no neural model in this matrix can match that audit trail on structured data.' },
+    bigtab:  { model:'lightgbm', title:'First choice: LightGBM', body:'Leaf-wise growth and histogram-based training make it the fastest trainer here on millions of rows, with the same SHAP-based explainability as XGBoost. Runner-up: XGBoost if the dataset turns out smaller and noisier than expected. What you give up: raw text and image inputs — features must be engineered before either tabular model can use them.' }
+  };
+  var scenBtns = document.querySelectorAll('[data-scen]');
+  var verdict = document.getElementById('verdict');
+  function clearHL(){ rows.forEach(function(r){ r.classList.remove('hl'); }); }
+  scenBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      scenBtns.forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+      btn.setAttribute('aria-pressed','true');
+      var v = verdicts[btn.getAttribute('data-scen')];
+      if(!v) return;
+      verdict.innerHTML = '';
+      var h = document.createElement('h3'); h.textContent = v.title;
+      var p = document.createElement('p'); p.textContent = v.body;
+      verdict.appendChild(h); verdict.appendChild(p);
+      // reset filter to all so the highlighted row is visible
+      chips.forEach(function(c){ c.setAttribute('aria-pressed', c.getAttribute('data-filter')==='all' ? 'true' : 'false'); });
+      rows.forEach(function(r){ r.style.display=''; });
+      clearHL();
+      var row = document.querySelector('#matrixBody tr[data-model="'+v.model+'"]');
+      if(row){ row.classList.add('hl'); }
+      document.getElementById('matrix').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+})();
+</script>
+</body>
+</html>
